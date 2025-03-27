@@ -1,0 +1,22 @@
+# The version of APIs your extension will receive. Learn more:
+# https://shopify.dev/docs/api/usage/versioning
+api_version = "2024-10"
+
+[[extensions]]
+type = "ui_extension"
+name = "Product lookup"
+
+handle = "Product-lookup"
+description = "Look up cost of a product variant"
+
+# Controls where in POS your extension will be injected,
+# and the file that contains your extension’s source code.
+
+[[extensions.targeting]]
+module = "./src/Tile.jsx"
+target = "pos.home.tile.render"
+
+
+[[extensions.targeting]]
+module = "./src/Modal.jsx"
+target = "pos.home.modal.render"
