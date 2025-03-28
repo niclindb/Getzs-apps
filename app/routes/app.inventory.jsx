@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { authenticate } from "../shopify.server";
 import {
   Layout,
