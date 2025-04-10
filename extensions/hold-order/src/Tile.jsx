@@ -29,9 +29,7 @@ const TileComponent = () => {
                 throw new Error('Failed to get session token');
               }
               
-              const url = `${process.env.APP_URL}/api/createDraft`;
-              const response = await fetch(url, {
-                method: 'POST',
+              const response = await fetch(`https://pos.getzs.com/api/createCharge`, {  method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${newToken}`,

@@ -50,7 +50,7 @@ const SmartGridTile = () => {
         throw new Error('Failed to get session token');
       }
 
-      const response = await fetch(`${process.env.APP_URL}/api/createCharge`, {
+      const response = await fetch(`https://pos.getzs.com/api/createCharge`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

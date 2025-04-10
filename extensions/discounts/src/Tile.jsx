@@ -23,7 +23,7 @@ const SmartGridTile = () => {
         if (item.discounts && item.discounts.length > 0) {
           continue;
         } 
-        const url = `${process.env.APP_URL}/api/getDiscounts?productId=${item.productId}`;
+        const url = `https://pos.getzs.com/api/getDiscounts?productId=${item.productId}`;
         const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${newToken}`,
@@ -53,7 +53,11 @@ const SmartGridTile = () => {
         if (item.discounts && item.discounts.length > 0) {
           continue;
         }else {
-          api.cart.setLineItemDiscount(item.uuid, 'Percentage', 'Discount', '20');
+	  if (item.title && item.title.toLowerCase().startsWith('carhartt')) {
+            api.cart.setLineItemDiscount(item.uuid, 'Percentage', 'Discount', '10');
+          } else {
+            api.cart.setLineItemDiscount(item.uuid, 'Percentage', 'Discount', '20');
+          }
         }
       }
     } catch (error) {
@@ -72,7 +76,7 @@ const SmartGridTile = () => {
   return (
     <Tile 
       title='Discounts' 
-      subtitle='Click to apply 20% off'
+      subtitle='Click to apply 20% off excluding Carhartt'
       onPress={apply20PercentDiscount}
       enabled
     />  

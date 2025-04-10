@@ -222,7 +222,7 @@ export default function Index() {
   return (
     <div>
       <div className="no-print">
-        <Page>
+        <Page title="Label Printer">
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
             <TextField
               label="Year Letter"
