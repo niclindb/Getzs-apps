@@ -43,7 +43,6 @@ const SmartGridTile = () => {
       
     } catch (error) {
       console.error('Error applying discounts:', error);
-      api.toast.show(error.message);
     }
   };
 
@@ -53,7 +52,7 @@ const SmartGridTile = () => {
         if (item.discounts && item.discounts.length > 0) {
           continue;
         }else {
-	  if (item.title && item.title.toLowerCase().startsWith('carhartt')) {
+	        if (item.title && item.title.toLowerCase().startsWith('carhartt')) {
             api.cart.setLineItemDiscount(item.uuid, 'Percentage', 'Discount', '10');
           } else {
             api.cart.setLineItemDiscount(item.uuid, 'Percentage', 'Discount', '20');
@@ -62,7 +61,6 @@ const SmartGridTile = () => {
       }
     } catch (error) {
       console.error('Error applying discounts:', error);
-      api.toast.show(error.message);
     }
   };
 

@@ -7,7 +7,7 @@ type = "ui_extension"
 name = "Hold Order"
 
 handle = "hold-order"
-description = "Put products on hold and take them out of inventory"
+description = "Create and fetch draft orders"
 
 # Controls where in POS your extension will be injected,
 # and the file that contains your extension’s source code.

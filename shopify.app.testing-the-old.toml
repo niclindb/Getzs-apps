@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "b81ee28bb971755ac06b715665a270bd"
-application_url = "https://genetic-ons-comes-directory.trycloudflare.com"
+application_url = "https://pos.getzs.com"
 embedded = true
 name = "Getz's Apps"
 handle = "GetzsApps"
@@ -20,9 +20,9 @@ scopes = "write_assigned_fulfillment_orders, write_merchant_managed_fulfillment_
 
 [auth]
 redirect_urls = [
-  "https://genetic-ons-comes-directory.trycloudflare.com/auth/callback",
-  "https://genetic-ons-comes-directory.trycloudflare.com/auth/shopify/callback",
-  "https://genetic-ons-comes-directory.trycloudflare.com/api/auth/callback"
+  "https://pos.getzs.com/auth/callback",
+  "https://pos.getzs.com/auth/shopify/callback",
+  "https://pos.getzs.com/api/auth/callback"
 ]
 
 [pos]
