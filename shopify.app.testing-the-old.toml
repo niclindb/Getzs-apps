@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "b81ee28bb971755ac06b715665a270bd"
-application_url = "https://pos.getzs.com"
+application_url = "https://https://pos.getzs.com"
 embedded = true
 name = "Getz's Apps"
 handle = "GetzsApps"
@@ -16,7 +16,7 @@ api_version = "2025-01"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_assigned_fulfillment_orders, write_merchant_managed_fulfillment_orders, write_draft_orders,write_order_edits, write_payment_terms, write_orders, read_customers, read_inventory, read_locations, read_orders, read_products, write_products, read_product_listings"
+scopes = "write_inventory, write_assigned_fulfillment_orders, write_merchant_managed_fulfillment_orders, write_draft_orders,write_order_edits, write_payment_terms, write_orders, read_customers, read_inventory, read_locations, read_orders, read_products, write_products, read_product_listings"
 
 [auth]
 redirect_urls = [
