@@ -15,8 +15,8 @@ import { authenticate } from "../shopify.server";
 import { Form, useActionData, useSubmit, useNavigation } from "@remix-run/react";
 
 const LOCATION_IDS = {
-    warehouse: "gid://shopify/Location/76656246936",
-    floor: "gid://shopify/Location/76656279704"
+    warehouse: "gid://shopify/Location/74906370369",
+    floor: "gid://shopify/Location/86051619137"
 };
 
 export const loader = async ({ request }) => {
@@ -286,7 +286,7 @@ export const action = async ({ request }) => {
                 const currentQuantity = level.node.quantities[0].quantity;
                 
                 // Only add to changes if there's inventory to remove
-                if (currentQuantity > 0) {
+                if (currentQuantity != 0) {
                     changes.push({
                         delta: -currentQuantity, // Exact amount needed to reach 0
                         inventoryItemId: item.inventoryItem.id,

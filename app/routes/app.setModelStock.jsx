@@ -146,7 +146,7 @@ export const action = async ({ request }) => {
                             metafields: batch.map(update => ({
                                 key: "model_stock",
                                 namespace: "custom",
-                                ownerId: update.variantId, // Assuming this is already in gid format
+                                ownerId: update.variantId,
                                 type: "number_integer",
                                 value: update.modelStock.toString()
                             }))
@@ -195,18 +195,19 @@ export default function ModelStockPage() {
     const [searchParams, setSearchParams] = useState({
         brand: '',
         tags: '',
-        sku: ''
+        sku: '',
+        barcode: ''
     });
     const [variants, setVariants] = useState([]);
     const [modelStocks, setModelStocks] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const [totalVariants, setTotalVariants] = useState(0);
-    const [isSearching, setIsSearching] = useState(false);
     
     const actionData = useActionData();
     const submit = useSubmit();
     const navigation = useNavigation();
-    const isUpdating = navigation.state === "submitting";
+    const isSearching = navigation.state === "submitting" && 
+                       navigation.formData?.get("action") === "search";
 
     // Calculate pagination
     const totalPages = Math.ceil(totalVariants / ITEMS_PER_PAGE);
@@ -229,31 +230,6 @@ export default function ModelStockPage() {
             setModelStocks(initialModelStocks);
         }
     }, [actionData]);
-
-    const handleSearch = async (e) => {
-        e.preventDefault();
-        setIsSearching(true);
-        
-        try {
-            // Build search query
-            const queryParts = [];
-            if (searchParams.brand) queryParts.push(`vendor:${searchParams.brand}`);
-            if (searchParams.tags) queryParts.push(`tag:${searchParams.tags}`);
-            if (searchParams.sku) queryParts.push(`sku:${searchParams.sku}`);
-            
-            submit(
-                { 
-                    action: 'search',
-                    query: queryParts.join(' AND ')
-                },
-                { method: 'post' }
-            );
-        } catch (error) {
-            console.error('Search error:', error);
-        } finally {
-            setIsSearching(false);
-        }
-    };
 
     const handleUpdateAll = () => {
         const updates = Object.entries(modelStocks).map(([variantId, modelStock]) => ({
@@ -283,10 +259,10 @@ export default function ModelStockPage() {
                 <Layout>
                     <Layout.Section>
                         <Card>
-                            <Form onSubmit={handleSearch}>
+                            <Form method="post">
                                 <div style={{ padding: '1rem' }}>
                                     <Layout>
-                                        <Layout.Section oneThird>
+                                        <Layout.Section oneQuarter>
                                             <TextField
                                                 label="Brand"
                                                 value={searchParams.brand}
@@ -295,7 +271,7 @@ export default function ModelStockPage() {
                                                 disabled={isSearching}
                                             />
                                         </Layout.Section>
-                                        <Layout.Section oneThird>
+                                        <Layout.Section oneQuarter>
                                             <TextField
                                                 label="Tags"
                                                 value={searchParams.tags}
@@ -304,7 +280,7 @@ export default function ModelStockPage() {
                                                 disabled={isSearching}
                                             />
                                         </Layout.Section>
-                                        <Layout.Section oneThird>
+                                        <Layout.Section oneQuarter>
                                             <TextField
                                                 label="SKU"
                                                 value={searchParams.sku}
@@ -313,8 +289,32 @@ export default function ModelStockPage() {
                                                 disabled={isSearching}
                                             />
                                         </Layout.Section>
+                                        <Layout.Section oneQuarter>
+                                            <TextField
+                                                label="Barcode"
+                                                value={searchParams.barcode}
+                                                onChange={(value) => setSearchParams(prev => ({ ...prev, barcode: value }))}
+                                                placeholder="Search by barcode..."
+                                                disabled={isSearching}
+                                            />
+                                        </Layout.Section>
                                     </Layout>
                                     <div style={{ marginTop: '1rem' }}>
+                                        <input 
+                                            type="hidden" 
+                                            name="action" 
+                                            value="search" 
+                                        />
+                                        <input 
+                                            type="hidden" 
+                                            name="query" 
+                                            value={[
+                                                searchParams.brand && `vendor:${searchParams.brand}`,
+                                                searchParams.tags && `tag:${searchParams.tags}`,
+                                                searchParams.sku && `sku:${searchParams.sku}`,
+                                                searchParams.barcode && `barcode:${searchParams.barcode}`
+                                            ].filter(Boolean).join(' AND ')} 
+                                        />
                                         <Button 
                                             primary 
                                             submit
@@ -359,8 +359,8 @@ export default function ModelStockPage() {
                                     <Button 
                                         primary 
                                         onClick={handleUpdateAll}
-                                        loading={isUpdating}
-                                        disabled={isUpdating}
+                                        loading={navigation.state === "submitting"}
+                                        disabled={navigation.state === "submitting"}
                                     >
                                         Update All Model Stocks
                                     </Button>
@@ -384,7 +384,7 @@ export default function ModelStockPage() {
                                             value={modelStocks[variant.id] || 1}
                                             onChange={(value) => updateModelStock(variant.id, value)}
                                             min={0}
-                                            disabled={isUpdating}
+                                            disabled={navigation.state === "submitting"}
                                         />
                                     ])}
                                 />

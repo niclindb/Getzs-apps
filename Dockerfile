@@ -8,7 +8,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Copy configuration files first
-COPY .env.production .env
+COPY .env.testing-the-old .env
 COPY shopify.app.production.toml shopify.app.toml
 COPY package.json package-lock.json* ./
 

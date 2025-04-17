@@ -13,8 +13,8 @@ import { authenticate } from "../shopify.server";
 import { Form, useActionData, useSubmit } from "@remix-run/react";
 
 const LOCATION_IDS = {
-    warehouse: "gid://shopify/Location/76656246936",
-    floor: "gid://shopify/Location/76656279704"
+    warehouse: "gid://shopify/Location/74906370369",
+    floor: "gid://shopify/Location/86051619137"
 };
 
 export const loader = async ({ request }) => {
@@ -23,16 +23,12 @@ export const loader = async ({ request }) => {
 };
 
 export default function MoveInventoryPage() {
-    const [selectedDirection, setSelectedDirection] = useState('floor-to-warehouse');
+    const [selectedDirection, setSelectedDirection] = useState('warehouse-to-floor');
     const [formData, setFormData] = useState({ barcode: "" });
     const actionData = useActionData();
     const submit = useSubmit();
 
     const handleChange = (value) => {
-        console.log('handleChange called with:', value, 'includes newline:', value.includes('\n')); // Debug raw value
-        console.log('Value includes \\n:', value.includes('\n'));
-        console.log('Value includes \\r:', value.includes('\r'));
-        console.log('Value charCodes:', Array.from(value).map(c => c.charCodeAt(0)));
         
         if (value.includes('\n')) {
             const cleanBarcode = value.replace('\n', '').trim();
@@ -62,6 +58,11 @@ export default function MoveInventoryPage() {
             ? 'Floor → Warehouse'
             : 'Warehouse → Floor';
     };
+    const getToneColor = () => {
+        return selectedDirection === 'floor-to-warehouse' 
+            ? 'warning'
+            : 'success';
+    };
 
     return (
         <Page>
@@ -73,16 +74,16 @@ export default function MoveInventoryPage() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <ButtonGroup fullWidth segmented>
                                     <Button
-                                        pressed={selectedDirection === 'floor-to-warehouse'}
-                                        onClick={() => setSelectedDirection('floor-to-warehouse')}
-                                    >
-                                        Floor → Warehouse
-                                    </Button>
-                                    <Button
                                         pressed={selectedDirection === 'warehouse-to-floor'}
                                         onClick={() => setSelectedDirection('warehouse-to-floor')}
                                     >
                                         Warehouse → Floor
+                                    </Button>
+                                    <Button
+                                        pressed={selectedDirection === 'floor-to-warehouse'}
+                                        onClick={() => setSelectedDirection('floor-to-warehouse')}
+                                    >
+                                        Floor → Warehouse
                                     </Button>
                                 </ButtonGroup>
                                 
@@ -111,7 +112,7 @@ export default function MoveInventoryPage() {
                         )}
 
                         {actionData?.success && (
-                            <Banner status="success" tone="success">
+                            <Banner status="success" tone={getToneColor()}>
                                 <Text>Product: {actionData.productTitle}</Text>
                                 <Text>Variant: {actionData.variantTitle}</Text>
                                 <Text>Moved: {getDirectionLabel()}</Text>
@@ -130,7 +131,6 @@ export const action = async ({ request }) => {
     const barcode = formData.get("barcode");
     const direction = formData.get("direction");
 
-    console.log('Moving inventory:', barcode, direction);
 
     if (!barcode) {
         return { error: "No barcode scanned" };

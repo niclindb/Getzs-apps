@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { authenticate } from "../shopify.server";
 import {
   Layout,
@@ -9,14 +9,16 @@ import {
   Page,
   DataTable,
   Button,
-  Icon
+  Icon,
+  Checkbox,
+  ButtonGroup
 } from "@shopify/polaris";
 import { Form, useActionData, useSubmit } from "@remix-run/react";
 import { PrintIcon } from "@shopify/polaris-icons";
 
 const LOCATION_IDS = {
-    warehouse: "gid://shopify/Location/76656246936",
-    floor: "gid://shopify/Location/76656279704"
+    warehouse: "gid://shopify/Location/74906370369",
+    floor: "gid://shopify/Location/86051619137"
 };
 
 export const loader = async ({ request }) => {
@@ -28,6 +30,9 @@ export const action = async ({ request }) => {
     const { admin } = await authenticate.admin(request);
     const formData = await request.formData();
     const barcode = formData.get("barcode");
+    const isRemoveMode = formData.get("isRemoveMode") === "true";
+    const removeLocation = formData.get("removeLocation");
+
 
     if (!barcode) {
         return { error: "No barcode scanned" };
@@ -83,7 +88,7 @@ export const action = async ({ request }) => {
         }
 
         // Find model stock from metafield
-        const modelStock = variant.metafield?.value || 1; // not sure if this should be 1 or 100
+        const modelStock = variant.metafield?.value || 100; 
 
         // Find floor quantity
         const floorLevel = variant.inventoryItem.inventoryLevels.edges.find(
@@ -91,11 +96,20 @@ export const action = async ({ request }) => {
         );
         const floorQuantity = floorLevel ? floorLevel.node.quantities[0].quantity : 0;
 
-        // Determine target location based on model stock
-        const sendToWarehouse = floorQuantity >= modelStock;
-        const targetLocationId = sendToWarehouse ? LOCATION_IDS.warehouse : LOCATION_IDS.floor;
+        // Determine target location and delta
+        let targetLocationId;
+        let delta = 1;
 
-        // Adjust inventory
+        if (isRemoveMode) {
+            targetLocationId = removeLocation === 'warehouse' ? LOCATION_IDS.warehouse : LOCATION_IDS.floor;
+            delta = -1;
+        } else {
+            // Original logic for adding inventory
+            const sendToWarehouse = floorQuantity >= modelStock;
+            targetLocationId = sendToWarehouse ? LOCATION_IDS.warehouse : LOCATION_IDS.floor;
+        }
+
+        // Update inventory adjustment mutation
         const inventoryResponse = await admin.graphql(
             `#graphql
             mutation inventoryAdjustQuantities($input: InventoryAdjustQuantitiesInput!) {
@@ -116,11 +130,11 @@ export const action = async ({ request }) => {
             {
                 variables: {
                     input: {
-                        reason: "received",
+                        reason: isRemoveMode ? "correction" : "received",
                         name: "available",
                         changes: [
                             {
-                                delta: 1,
+                                delta: delta,
                                 inventoryItemId: variant.inventoryItem.id,
                                 locationId: targetLocationId
                             }
@@ -143,7 +157,8 @@ export const action = async ({ request }) => {
             barcode,
             productTitle: variant.product.title,
             variantTitle: variant.title,
-            sentToWarehouse: sendToWarehouse,
+            sentToWarehouse: targetLocationId === LOCATION_IDS.warehouse,
+            isRemoveMode,
         };
 
     } catch (error) {
@@ -154,55 +169,64 @@ export const action = async ({ request }) => {
 
 export default function InventoryPage() {
     const [formData, setFormData] = useState("");
+    const [isRemoveMode, setIsRemoveMode] = useState(false);
+    const [selectedLocation, setSelectedLocation] = useState('floor');
     const actionData = useActionData();
     const submit = useSubmit();
     const [floorItems, setFloorItems] = useState(new Map());
     const [warehouseItems, setWarehouseItems] = useState(new Map());
+    const [totalReceived, setTotalReceived] = useState(0);
 
-    const handleChange = (value) => {
+    const handleChange = useCallback((value) => {
         if (value.includes('\n')) {
             const cleanBarcode = value.replace('\n', '').trim();
             if (cleanBarcode) {
-                submit({ barcode: cleanBarcode }, { method: "post" });
+                const formData = new FormData();
+                formData.append('barcode', cleanBarcode);
+                formData.append('isRemoveMode', isRemoveMode.toString());
+                if (isRemoveMode) {
+                    formData.append('removeLocation', selectedLocation);
+                }
+                submit(formData, { method: "post" });
             }
         } else {
             setFormData(value);
         }
-    };
+    }, [isRemoveMode, selectedLocation, submit]);
 
     useEffect(() => {
         if (actionData?.success) {
             setFormData("");
             
             const key = `${actionData.productTitle}|${actionData.variantTitle}`;
-            const newItem = {
-                productTitle: actionData.productTitle,
-                variantTitle: actionData.variantTitle,
-                quantity: 1
+            const delta = actionData.isRemoveMode ? -1 : 1;
+            
+            setTotalReceived(prev => prev + delta);
+            
+            const updateItems = (prev) => {
+                const next = new Map(prev);
+                if (next.has(key)) {
+                    const existing = next.get(key);
+                    const newQuantity = existing.quantity + delta;
+                    if (newQuantity === 0) {
+                        next.delete(key);
+                    } else {
+                        next.set(key, { ...existing, quantity: newQuantity });
+                    }
+                } else {
+                    next.set(key, {
+                        productTitle: actionData.productTitle,
+                        variantTitle: actionData.variantTitle,
+                        quantity: delta
+                    });
+                }
+                return next;
             };
 
             if (actionData.sentToWarehouse) {
-                setWarehouseItems(prev => {
-                    const next = new Map(prev);
-                    if (next.has(key)) {
-                        const existing = next.get(key);
-                        next.set(key, { ...existing, quantity: existing.quantity + 1 });
-                    } else {
-                        next.set(key, newItem);
-                    }
-                    return next;
-                });
+                setWarehouseItems(updateItems);
             } else {
-                setFloorItems(prev => {
-                    const next = new Map(prev);
-                    if (next.has(key)) {
-                        const existing = next.get(key);
-                        next.set(key, { ...existing, quantity: existing.quantity + 1 });
-                    } else {
-                        next.set(key, newItem);
-                    }
-                    return next;
-                });
+                setFloorItems(updateItems);
             }
         }
     }, [actionData]);
@@ -308,6 +332,44 @@ export default function InventoryPage() {
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     };
+    const getToneColor =() => {
+        if (actionData?.isRemoveMode) {
+            return 'critical';
+        }
+        return actionData?.sentToWarehouse == true 
+            ? 'warning'
+            : 'success';
+    };
+
+    const renderLocationButtons = () => {
+        try {            
+            return (
+                <ButtonGroup>
+                    <Button
+                        variant={selectedLocation === 'floor' ? 'primary' : 'secondary'}
+                        onClick={() => {
+                
+                            setSelectedLocation('floor');
+                        }}
+                    >
+                        Floor
+                    </Button>
+                    <Button
+                        variant={selectedLocation === 'warehouse' ? 'primary' : 'secondary'}
+                        onClick={() => {
+                            setSelectedLocation('warehouse');
+                        }}
+                    >
+                        Warehouse
+                    </Button>
+                </ButtonGroup>
+            );
+        } catch (e) {
+            console.error('Button render error:', e);
+            console.error('Error stack:', e.stack);
+            return <div>Error rendering location buttons</div>;
+        }
+    };
 
     return (
         <Page>
@@ -315,8 +377,20 @@ export default function InventoryPage() {
             <Layout>
                 <Layout.Section>
                     <Card>
-                        <Form method="post">
-                            <div style={{ padding: '1rem' }}>
+                        <div style={{ padding: '1rem' }}>
+                            <Form method="post">
+                                <input 
+                                    type="hidden" 
+                                    name="isRemoveMode" 
+                                    value={isRemoveMode.toString()} 
+                                />
+                                {isRemoveMode && (
+                                    <input 
+                                        type="hidden" 
+                                        name="removeLocation" 
+                                        value={selectedLocation} 
+                                    />
+                                )}
                                 <TextField
                                     type="text"
                                     label="Scan Barcode"
@@ -326,28 +400,46 @@ export default function InventoryPage() {
                                     autoComplete="off"
                                     autoFocus
                                 />
+                            </Form>
+                            
+                            <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <Checkbox
+                                    label="Remove Inventory"
+                                    checked={isRemoveMode}
+                                    onChange={(checked) => {
+                                        setIsRemoveMode(checked);
+                                    }}
+                                />
+                                
+                                {isRemoveMode && renderLocationButtons()}
                             </div>
-                        </Form>
+                        </div>
 
                         {actionData?.error && (
-                            <Banner status="critical" tone="critical">
-                                <Text>{actionData.error}</Text>
-                            </Banner>
+                            <div style={{ padding: '0 1rem' }}>
+                                <Banner status="critical" tone="critical">
+                                    <Text>{actionData.error}</Text>
+                                </Banner>
+                            </div>
                         )}
 
                         {actionData?.success && (
-                            <Banner status="success" tone="success">
-                                <Text>Added to {actionData.sentToWarehouse ? 'Warehouse' : 'Floor'}</Text>
-                                <Text>Product: {actionData.productTitle}</Text>
-                                <Text>Variant: {actionData.variantTitle}</Text>
-                            </Banner>
+                            <div style={{ padding: '0 1rem' }}>
+                                <Banner status="success" tone={getToneColor()}>
+                                    <Text>
+                                        {actionData.isRemoveMode ? 'Removed from' : 'Added to'} {actionData.sentToWarehouse ? 'Warehouse' : 'Floor'}
+                                    </Text>
+                                    <Text>Product: {actionData.productTitle}</Text>
+                                    <Text>Variant: {actionData.variantTitle}</Text>
+                                </Banner>
+                            </div>
                         )}
                     </Card>
                 </Layout.Section>
 
                 <Layout.Section>
                     <Page
-                        title="Scanned Items"
+                        title={`Scanned Items (Total: ${totalReceived})`}
                         primaryAction={
                             <Button onClick={handlePrint} icon={<Icon source={PrintIcon} />}>
                                 Print
