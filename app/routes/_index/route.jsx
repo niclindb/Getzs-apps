@@ -6,7 +6,10 @@ import styles from "./styles.module.css";
 export const loader = async ({ request }) => {
   const url = new URL(request.url);
 
-  if (url.searchParams.get("shop")) {
+  if (
+    url.searchParams.get("shop") &&
+    !url.pathname.startsWith("/nicksApp")
+  ) {
     throw redirect(`/nicksApp/app?${url.searchParams.toString()}`);
   }
 
@@ -24,7 +27,7 @@ export default function App() {
           A tagline about [your app] that describes your value proposition.
         </p>
         {showForm && (
-          <Form className={styles.form} method="post" action="/nicksApp/auth/login">
+          <Form className={styles.form} method="post" action="/auth/login">
             <label className={styles.label}>
               <span>Shop domain</span>
               <input className={styles.input} type="text" name="shop" />
