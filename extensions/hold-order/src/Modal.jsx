@@ -45,7 +45,7 @@ const Modal = () => {
       }
 
       // Fetch draft order
-      const response = await fetch(`https://pos.getzs.com/api/fetchDraft?name=${draftOrderNumber}`, {
+      const response = await fetch(`https://shopify-inventory.getzs.com/nicksApp/api/fetchDraft?name=${draftOrderNumber}`, {
         headers: {
           'Authorization': `Bearer ${sessionToken}`,
         }

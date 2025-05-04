@@ -12,6 +12,11 @@ import {
 import { PrintIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 
+const LOCATION_IDS = {
+  warehouse: "gid://shopify/Location/74906370369",
+  floor: "gid://shopify/Location/86051619137"
+};
+
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
   return null;
@@ -27,22 +32,23 @@ export const action = async ({ request }) => {
   if (Brand) queryString += ` AND vendor:${Brand}*`;
   if (Gender) queryString +=  ` AND tag:${Gender}`;
 
+  console.log("queryString", queryString);
+
   let allVariants = [];
   let hasNextPage = true;
   let currentCursor = null;
 
-  // Fetch all pages
   while (hasNextPage) {
     const graphqlQuery = await admin.graphql(
       `#graphql
       query GetProducts($query: String!, $cursor: String) {
-        products(first: 250, after: $cursor, query: $query) {
+        products(first: 100, after: $cursor, query: $query) {
           edges {
             cursor
             node {
               id
               title
-              variants(first: 200) {
+              variants(first: 250) {
                 edges {
                   node {
                     id
@@ -52,11 +58,15 @@ export const action = async ({ request }) => {
                       name
                       value
                     }
+                    metafield(namespace: "custom", key: "model_stock") {
+                      value
+                    }
                     inventoryItem {
                       inventoryLevels(first: 2) {
                         edges {
                           node {
                             location {
+                              id
                               name
                             }
                             quantities(names: ["available"]) {
@@ -84,12 +94,36 @@ export const action = async ({ request }) => {
     const products = data?.data?.products || {};
     
     const pageVariants = products.edges.flatMap((product) =>
-      product.node.variants.edges.map((variant) => ({
-        productTitle: product.node.title,
-        selectedOptions: variant.node.selectedOptions,
-        sku: variant.node.sku,
-        inventoryLevels: variant.node.inventoryItem.inventoryLevels.edges,
-      }))
+      product.node.variants.edges.map((variant) => {
+        // Find floor and warehouse quantities using location IDs
+        const floorLevel = variant.node.inventoryItem.inventoryLevels.edges.find(
+          edge => edge.node.location.id === LOCATION_IDS.floor
+        );
+        const warehouseLevel = variant.node.inventoryItem.inventoryLevels.edges.find(
+          edge => edge.node.location.id === LOCATION_IDS.warehouse
+        );
+
+        const floorQuantity = floorLevel ? floorLevel.node.quantities[0].quantity : 0;
+        const warehouseQuantity = warehouseLevel ? warehouseLevel.node.quantities[0].quantity : 0;
+        const modelStock = variant.node.metafield?.value || 100;
+
+        // Only include variants that match our conditions
+        if (floorQuantity < modelStock && warehouseQuantity > 0) {
+          return {
+            productTitle: product.node.title,
+            selectedOptions: variant.node.selectedOptions,
+            sku: variant.node.sku,
+            floorQuantity,
+            warehouseQuantity,
+            modelStock,
+            locationNames: {
+              floor: floorLevel?.node.location.name || "Floor",
+              warehouse: warehouseLevel?.node.location.name || "Warehouse"
+            }
+          };
+        }
+        return null;
+      }).filter(Boolean) // Remove null entries
     );
 
     allVariants = [...allVariants, ...pageVariants];
@@ -109,10 +143,8 @@ export default function FormQuery() {
   const [formData, setFormData] = useState({
     Brand: "",
     Gender: "",
-    NOP: "",
     cursor: null,
   });
-  const [paginationLoading, setPaginationLoading] = useState(false);
 
   const isLoading =
     ["loading", "submitting"].includes(fetcher.state) &&
@@ -136,7 +168,7 @@ export default function FormQuery() {
           <style>
             table { width: 100%; border-collapse: collapse; }
             th, td { border: 1px solid black; padding: 8px; text-align: left; }
-            // th { background-color: #f2f2f2; }
+            th { background-color: #f2f2f2; }
           </style>
         </head>
         <body>${tableContent}</body>
@@ -147,45 +179,38 @@ export default function FormQuery() {
   };
 
   const allVariants = fetcher.data?.allVariants || [];
-  const hasNextPage = fetcher.data?.hasNextPage;
+  
+  // Get location names from the first variant, or use defaults
+  const locationNames = allVariants[0]?.locationNames || {
+    floor: "Floor",
+    warehouse: "Warehouse"
+  };
 
-  const { NOP } = formData;
-  const num = parseInt(NOP, 10);
+  const tableRows = allVariants.map((variantData) => {
+    const option1 = variantData.selectedOptions.find(
+      (option) => option.name === "Color"
+    )?.value;
+    const option2 = variantData.selectedOptions.find(
+      (option) => option.name === "Size"
+    )?.value;
 
-  const locationNames =
-    allVariants[0]?.inventoryLevels.slice(0, 2).map(
-      (level) => level.node.location?.name || "-"
-    ) || ["Floor", "Warehouse"];
+    // Calculate how many items we need to restock
+    const restockAmount = Math.min(
+      variantData.modelStock - variantData.floorQuantity, // How many we need
+      variantData.warehouseQuantity // How many we have available
+    );
 
-  const tableRows = allVariants
-    .filter((variantData) => {
-      const locations = variantData.inventoryLevels.slice(0, 2);
-      const quantity1 = locations[0]?.node?.quantities?.[0]?.quantity || 0;
-      const quantity2 = locations[1]?.node?.quantities?.[0]?.quantity || 0;
-      
-      return quantity1 < num && quantity2 > 0;
-    })
-    .map((variantData) => {
-      const locations = variantData.inventoryLevels.slice(0, 2);
-      const option1 = variantData.selectedOptions.find(
-        (option) => option.name === "Color"
-      )?.value;
-      const option2 = variantData.selectedOptions.find(
-        (option) => option.name === "Size"
-      )?.value;
-
-      const quantity1 = locations[0]?.node?.quantities?.[0]?.quantity || 0;
-      const quantity2 = locations[1]?.node?.quantities?.[0]?.quantity || 0;
-
-      return [
-        variantData.productTitle,
-        variantData.sku || "-",
-        option1 || "-",
-        option2 || "-",
-        quantity1,
-        quantity2,
-      ];
-    });
+    return [
+      variantData.productTitle,
+      variantData.sku || "-",
+      option1 || "-",
+      option2 || "-",
+      variantData.floorQuantity,
+      variantData.warehouseQuantity,
+      variantData.modelStock,
+      restockAmount // Add this to the table
+    ];
+  });
 
   return (
     <Page title="Create Refill">
@@ -207,14 +232,6 @@ export default function FormQuery() {
                 onChange={handleChange("Gender")}
                 placeholder="Searches tag (combine with AND/OR)"
                 name="Gender"
-              />
-              <TextField
-                type="number"
-                label="How many items do you want on the floor"
-                value={formData.NOP}
-                onChange={handleChange("NOP")}
-                placeholder="NOP:"
-                name="NOP"
               />
               <Button submit disabled={isLoading} onClick={handleSubmit}>
                 {isLoading ? <Spinner size="small" /> : "Submit"}
@@ -250,17 +267,20 @@ export default function FormQuery() {
                       "text",
                       "text",
                       "text",
-                      "text",
                       "numeric",
                       "numeric",
+                      "numeric",
+                      "numeric"
                     ]}
                     headings={[
                       "Product",
                       "SKU",
                       "Color",
                       "Size",
-                      locationNames[0],
-                      locationNames[1],
+                      locationNames.floor,
+                      locationNames.warehouse,
+                      "Model Stock",
+                      "Restock Amount"
                     ]}
                     rows={tableRows}
                   />

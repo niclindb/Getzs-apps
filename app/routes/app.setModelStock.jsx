@@ -79,7 +79,7 @@ export const action = async ({ request }) => {
                 // Add variants from this page
                 const variants = edges.map(edge => ({
                     ...edge.node,
-                    currentModelStock: edge.node.metafield?.value || "1"
+                    currentModelStock: edge.node.metafield?.value || 100
                 }));
                 
                 allVariants = [...allVariants, ...variants];
@@ -378,12 +378,12 @@ export default function ModelStockPage() {
                                         variant.product.title,
                                         variant.title,
                                         variant.sku,
-                                        variant.currentModelStock || 1,
+                                        variant.currentModelStock || 100,
                                         <TextField
                                             type="number"
-                                            value={modelStocks[variant.id] || 1}
+                                            value={modelStocks[variant.id] === 100 ? 1 : modelStocks[variant.id] || 1}
                                             onChange={(value) => updateModelStock(variant.id, value)}
-                                            min={0}
+                                            min={1}
                                             disabled={navigation.state === "submitting"}
                                         />
                                     ])}

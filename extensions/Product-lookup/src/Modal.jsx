@@ -40,7 +40,7 @@ const SmartGridModal = () => {
       
       setSessionToken(newToken);
       
-      const url = `https://pos.getzs.com/api/queryCost?barcode=${barcode}`;
+      const url = `https://shopify-inventory.getzs.com/nicksApp/api/queryCost?barcode=${barcode}`;
 
       const response = await fetch(url, {
         method: 'GET',

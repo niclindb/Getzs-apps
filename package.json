@@ -1,6 +1,7 @@
 {
   "name": "test-pos",
   "private": true,
+  "homepage": "/nicksApp",
   "scripts": {
     "build": "remix vite:build",
     "dev": "shopify app dev",
