@@ -7,7 +7,7 @@ export const loader = async ({ request }) => {
   const url = new URL(request.url);
 
   if (url.searchParams.get("shop")) {
-    throw redirect(`/app?${url.searchParams.toString()}`);
+    throw redirect(`/nicksApp/app?${url.searchParams.toString()}`);
   }
 
   return { showForm: Boolean(login) };
@@ -24,7 +24,7 @@ export default function App() {
           A tagline about [your app] that describes your value proposition.
         </p>
         {showForm && (
-          <Form className={styles.form} method="post" action="/auth/login">
+          <Form className={styles.form} method="post" action="/nicksApp/auth/login">
             <label className={styles.label}>
               <span>Shop domain</span>
               <input className={styles.input} type="text" name="shop" />
