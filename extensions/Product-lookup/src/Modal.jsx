@@ -31,6 +31,8 @@ const SmartGridModal = () => {
     setProductTitle(null);  
     setPrice(null);
     setIsLoading(true);
+    setError(null); // Reset error state at start of new request
+    
     try {
       const newToken = await getSessionToken();
       
@@ -40,17 +42,18 @@ const SmartGridModal = () => {
       
       setSessionToken(newToken);
       
-      const url = `https://shopify-inventory.getzs.com/nicksApp/api/queryCost?barcode=${barcode}`;
+      const url = `https://shopify-inventory.getzs.com/nicksApp/api/queryCost`;
 
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${newToken}`,
-        }
+        },
+        body: JSON.stringify({ barcode })
       });
+
       if (!response.ok) {
-        setProductTitle("Product not found");
         const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
@@ -58,16 +61,17 @@ const SmartGridModal = () => {
       const responseData = await response.json();
 
       if (!responseData.data) {
-        setProductTitle("Product not found");
         throw new Error('No data found in response');
       }
 
       setCost(responseData.data.costCode || '-');
       setProductTitle(responseData.data.productTitle || '-');
       setPrice(responseData.data.price || '-');
-      setError(null);
     } catch (error) {
       setError(error);
+      setProductTitle("Product not found");
+      setCost('-');
+      setPrice('-');
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +91,7 @@ const SmartGridModal = () => {
           <Stack border="border" spacing="tight" fullWidth>
             <Stack alignment="center" distribute="center" inlineAlignment="center" fullWidth>
               <Stack spacing="none" alignment="center" distribute="center">
-                <Text >Product Title: </Text>
+                <Text>Product Title: </Text>
                 <Text alignment="center">{isLoading ? 'Loading...' : (productTitle || 'Not scanned')}</Text>
               </Stack>
             </Stack>
