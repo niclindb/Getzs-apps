@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "b81ee28bb971755ac06b715665a270bd"
-application_url = "https://authorized-anonymous-afraid-peninsula.trycloudflare.com"
+application_url = "https://nick.getzs.com/"
 embedded = true
 name = "Getz's Apps"
 handle = "GetzsApps"
@@ -20,9 +20,9 @@ scopes = "write_inventory, write_assigned_fulfillment_orders, write_merchant_man
 
 [auth]
 redirect_urls = [
-  "https://authorized-anonymous-afraid-peninsula.trycloudflare.com/auth/callback",
-  "https://authorized-anonymous-afraid-peninsula.trycloudflare.com/auth/shopify/callback",
-  "https://authorized-anonymous-afraid-peninsula.trycloudflare.com/api/auth/callback"
+  "https://nick.getzs.com/auth/callback",
+  "https://nick.getzs.com/auth/shopify/callback",
+  "https://nick.getzs.com/api/auth/callback"
 ]
 
 [pos]

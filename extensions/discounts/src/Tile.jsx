@@ -23,7 +23,7 @@ const SmartGridTile = () => {
         if (item.discounts && item.discounts.length > 0) {
           continue;
         } 
-        const url = `https://shopify-inventory.getzs.com/nicksApp/api/getDiscounts?productId=${item.productId}`;
+        const url = `https://nick.getzs.com/api/getDiscounts?productId=${item.productId}`;
         const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${newToken}`,

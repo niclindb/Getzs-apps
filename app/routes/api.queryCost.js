@@ -54,6 +54,7 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
+    console.log('Querying cost');
     try {
         const { admin } = await authenticate.admin(request);
         const { barcode } = await request.json(); // Changed to get barcode from request body
