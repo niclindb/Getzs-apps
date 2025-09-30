@@ -169,6 +169,7 @@ export default function FormQuery() {
             table { width: 100%; border-collapse: collapse; }
             th, td { border: 1px solid black; padding: 8px; text-align: left; }
             th { background-color: #f2f2f2; }
+	    tr:nth-child(even) { background-color: #f9f9f9; }
           </style>
         </head>
         <body>${tableContent}</body>

@@ -4,6 +4,7 @@ const DISCOUNTS = {
     '70% Off': 70,
     '60% Off': 60,
     '50% Off': 50,
+    '40% Off': 40,
     '30% Off': 30,
     '25% Off': 25,
     '20% Off': 20,

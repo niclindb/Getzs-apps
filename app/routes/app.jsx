@@ -22,14 +22,12 @@ export default function App() {
           Home
         </Link>
         <Link to="/app/receive">Receive Inventory</Link>
-        
+        <Link to="/app/moveInventory">Move Inventory</Link>
         <Link to="/app/saleBuilder">Sale Builder</Link>
         <Link to="/app/saleDestroyer">Sale Destroyer</Link>
-        
-        <Link to="/app/moveInventory">Move Inventory</Link>
         <Link to="/app/restock">Restock Products</Link>
         <Link to="/app/setModelStock">Set Model Stock</Link>
-        <Link to="/app/clearBrand">Clear Brand</Link>
+        <Link to="/app/priceProduct">Price Product</Link>
       </NavMenu>
       <Outlet />
     </AppProvider>
