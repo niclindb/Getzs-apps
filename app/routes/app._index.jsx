@@ -342,12 +342,12 @@ export default function Index() {
                         textAlign: "left",
                         marginBottom: "-28px",
                       }}>
-                        <span style={{ display: "inline-block", width: "43%" }}>{trimTitle(variant.productSku, 8)}</span>
+                        <span style={{ display: "inline-block", width: "42%" }}>{trimTitle(variant.productSku, 8)}</span>
                         <span style={{ 
                             display: "inline-block",
                             textAlign:"center",
                             fontSize: "25px", 
-                            width: "12%",
+                            width: "15%",
                             marginBottom: "-10px",
 			    marginRight: "20px"
 
@@ -358,7 +358,7 @@ export default function Index() {
                         <span style={{  
                             fontSize: "44px", 
                             display: "inline-block", 
-                            width: "44%", 
+                            width: "43%", 
                             textAlign: "right",
                             marginBottom: "-50px"
                         }}>${parseFloat(variant.price).toFixed(2)}</span>
@@ -388,10 +388,10 @@ export default function Index() {
                             display: "inline-block",
                             lineHeight: "1.4"
                         }}>
-                            {variant.productSize.split(' ').map((word, index) => (
+                            {variant.productSize.split(/[\s/]+/).map((word, index) => (
                                 <React.Fragment key={index}>
                                     {word}
-                                    {index < variant.productSize.split(' ').length - 1 && <br/>}
+                                    {index < variant.productSize.split(/[\s/]+/).length - 1 && <br/>}
                                 </React.Fragment>
                             ))}
                         </span>
