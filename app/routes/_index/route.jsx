@@ -6,8 +6,11 @@ import styles from "./styles.module.css";
 export const loader = async ({ request }) => {
   const url = new URL(request.url);
 
-  if (url.searchParams.get("shop")) {
-    throw redirect(`/app?${url.searchParams.toString()}`);
+  if (
+    url.searchParams.get("shop") &&
+    !url.pathname.startsWith("/nicksApp")
+  ) {
+    throw redirect(`/nicksApp/app?${url.searchParams.toString()}`);
   }
 
   return { showForm: Boolean(login) };

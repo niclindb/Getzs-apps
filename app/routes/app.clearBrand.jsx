@@ -9,7 +9,6 @@ import {
     Text,
     Frame,
     Modal,
-    ProgressBar
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { Form, useActionData, useSubmit, useNavigation } from "@remix-run/react";

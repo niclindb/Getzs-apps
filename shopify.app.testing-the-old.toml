@@ -2,6 +2,7 @@
 
 client_id = "b81ee28bb971755ac06b715665a270bd"
 application_url = "https://nick.getzs.com/"
+
 embedded = true
 name = "Getz's Apps"
 handle = "GetzsApps"
