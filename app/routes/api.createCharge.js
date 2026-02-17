@@ -21,11 +21,13 @@ export const action = async ({ request }) => {
                 requiresShipping: false,
                 appliedDiscount: item.discounts?.[0]?.amount ? {
                     valueType: "PERCENTAGE",
-                    value: Math.round((parseFloat(item.discounts[0].amount) / parseFloat(item.price) * 100)),
-                    description: "Product offer at checkout"
+                    value: Math.round(
+            		(parseFloat(item.discounts[0].amount) / item.quantity / parseFloat(item.price)) * 100
+        	    ),
+                    description: company
                 } : null
             })),
-            tags: [`${company}`, "store charge"],
+            tags: [`${company}`, "Store Charge"],
             taxExempt: taxTotal <= 0,
             paymentTerms: {
                 paymentTermsTemplateId: "gid://shopify/PaymentTermsTemplate/4",

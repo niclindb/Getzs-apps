@@ -1,7 +1,9 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "5bf13b7310436f71c3b049a5cee818ea"
-application_url = "https://shopify-inventory.getzs.com/nicksApp"
+
+application_url = "https://nick.getzs.com/"
+
 embedded = true
 name = "Getzs-Apps"
 handle = "getzs-apps"
@@ -23,9 +25,11 @@ scopes = "write_draft_orders, write_payment_terms, write_orders, read_customers,
 
 [auth]
 redirect_urls = [
-  "https://shopify-inventory.getzs.com/nicksApp/auth/callback",
-  "https://shopify-inventory.getzs.com/nicksApp/auth/shopify/callback",
-  "https://shopify-inventory.getzs.com/nicksApp/api/auth/callback"
+
+  "https://nick.getzs.com/auth/callback",
+  "https://nick.getzs.com/auth/shopify/callback",
+  "https://nick.getzs.com/api/auth/callback"
+
 ]
 
 [pos]

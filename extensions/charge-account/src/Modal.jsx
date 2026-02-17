@@ -50,7 +50,7 @@ const SmartGridTile = () => {
         throw new Error('Failed to get session token');
       }
 
-      const response = await fetch(`https://shopify-inventory.getzs.com/nicksApp/api/createCharge`, {
+      const response = await fetch(`https://nick.getzs.com/api/createCharge`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

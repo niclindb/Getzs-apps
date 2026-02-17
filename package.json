@@ -1,7 +1,6 @@
 {
-  "name": "test-pos",
+  "name": "getzs-apps",
   "private": true,
-  "homepage": "/nicksApp",
   "scripts": {
     "build": "remix vite:build",
     "dev": "shopify app dev",

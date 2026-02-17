@@ -79,7 +79,7 @@ export const action = async ({ request }) => {
                 // Add variants from this page
                 const variants = edges.map(edge => ({
                     ...edge.node,
-                    currentModelStock: edge.node.metafield?.value || 100
+                    currentModelStock: edge.node.metafield?.value || 1
                 }));
                 
                 allVariants = [...allVariants, ...variants];
@@ -121,9 +121,9 @@ export const action = async ({ request }) => {
             let successCount = 0;
             let errorCount = 0;
 
-            // Process updates in batches of 50
-            for (let i = 0; i < updates.length; i += 50) {
-                const batch = updates.slice(i, i + 50);
+            // Process updates in batches of 25
+            for (let i = 0; i < updates.length; i += 25) {
+                const batch = updates.slice(i, i + 25);
                 
                 const response = await admin.graphql(
                     `#graphql
@@ -166,7 +166,7 @@ export const action = async ({ request }) => {
 
                 // Add a small delay between batches
                 if (i + 10 < updates.length) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await new Promise(resolve => setTimeout(resolve, 100));
                 }
             }
 
@@ -225,7 +225,7 @@ export default function ModelStockPage() {
             // Initialize model stocks with current values
             const initialModelStocks = {};
             actionData.variants.forEach(variant => {
-                initialModelStocks[variant.id] = variant.currentModelStock;
+                initialModelStocks[variant.id] = variant.currentModelStock ?? 1;
             });
             setModelStocks(initialModelStocks);
         }
@@ -381,8 +381,8 @@ export default function ModelStockPage() {
                                         variant.currentModelStock || 100,
                                         <TextField
                                             type="number"
-                                            value={modelStocks[variant.id] === 100 ? 1 : modelStocks[variant.id] || 1}
-                                            onChange={(value) => updateModelStock(variant.id, value)}
+                                            value={modelStocks[variant.id] ?? variant.currentModelStock ?? 1}
+					    onChange={(value) => updateModelStock(variant.id, value)}
                                             min={1}
                                             disabled={navigation.state === "submitting"}
                                         />

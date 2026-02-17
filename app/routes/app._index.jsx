@@ -66,7 +66,9 @@ function convertCostToCode(cost) {
 
 // Add this function before the Index component
 function trimTitle(title, maxLength = 25) {
-  if (title.length <= maxLength) return title;
+  if (title.length <= maxLength){
+	return title;
+ }
   return title.substring(0, maxLength) + '...';
 }
 
@@ -193,7 +195,7 @@ export default function Index() {
             if (barcodeElement && variant.barcode) {
               JsBarcode.default(barcodeElement, String(variant.barcode), {
                 format: "CODE128",
-                displayValue: false,
+                displayValue: true,
                 height: 100,       // Adjust height if needed
                 width: 3.8,       // Adjust width if barcodes are too thick/thin
                 margin: 5,
@@ -223,6 +225,7 @@ export default function Index() {
     <div>
       <div className="no-print">
         <Page title="Label Printer">
+	  <p>set paper size to 30336</p>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
             <TextField
               label="Year Letter"
@@ -305,7 +308,7 @@ export default function Index() {
                         display: "block",
                         fontSize: "36px",
                         lineHeight: "2",
-                        maxWidth: "95%",
+                        maxWidth: "99%",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
@@ -325,7 +328,7 @@ export default function Index() {
                         textAlign: "left",
                         marginBottom: "-35px",
                       }}>
-                        {trimTitle(variant.productTitle, 35)}
+                        {trimTitle(variant.productTitle, 29)}
                         
                       </p>
 
@@ -333,27 +336,29 @@ export default function Index() {
                         margin: 0,
                         fontSize: "32px",
                         lineHeight: "1.8",
-                        maxWidth: "100%",
-                        overflow: "hidden",
+                        maxWidth: "98%",
+                       
                         whiteSpace: "nowrap",
                         textAlign: "left",
                         marginBottom: "-28px",
                       }}>
-                        <span style={{ display: "inline-block", width: "45%" }}>{trimTitle(variant.productSku, 25)}</span>
+                        <span style={{ display: "inline-block", width: "43%" }}>{trimTitle(variant.productSku, 8)}</span>
                         <span style={{ 
                             display: "inline-block",
-                            textAlign: "right",
+                            textAlign:"center",
                             fontSize: "25px", 
-                            width: "20%",
-                            marginBottom: "-10px"
+                            width: "12%",
+                            marginBottom: "-10px",
+			    marginRight: "20px"
+
                         }}>
                           {convertCostToCode(variant.cost)}
                           -{yearLetter}
                         </span>
                         <span style={{  
-                            fontSize: "50px", 
+                            fontSize: "44px", 
                             display: "inline-block", 
-                            width: "35%", 
+                            width: "44%", 
                             textAlign: "right",
                             marginBottom: "-50px"
                         }}>${parseFloat(variant.price).toFixed(2)}</span>
@@ -374,11 +379,11 @@ export default function Index() {
                       </p>
 
                                                               
-                      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "45px" }}>
+                      <div style={{ width: "100%", display: "flex", justifyContent: "flex-end", marginTop: "45px" }}>
                         <span style={{ 
-                            marginRight: `${variant.productSize.length >= 6 ? 10 : (8-variant.productSize.length)*10}px`, 
+                            marginRight: `${variant.productSize.length >= 6 ? 10 : (6-variant.productSize.length)*7}px`, 
                             textAlign: "left", 
-                            fontSize: "32px",
+                            fontSize: "30px",
                             marginTop: "30px",
                             display: "inline-block",
                             lineHeight: "1.4"

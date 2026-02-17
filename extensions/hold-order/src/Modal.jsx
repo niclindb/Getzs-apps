@@ -45,7 +45,7 @@ const Modal = () => {
       }
 
       // Fetch draft order
-      const response = await fetch(`https://shopify-inventory.getzs.com/nicksApp/api/fetchDraft?name=${draftOrderNumber}`, {
+      const response = await fetch(`https://nick.getzs.com/api/fetchDraft?name=${draftOrderNumber}`, {
         headers: {
           'Authorization': `Bearer ${sessionToken}`,
         }
@@ -124,7 +124,7 @@ const Modal = () => {
         throw new Error('Failed to get session token');
       }
       
-      const response = await fetch(`${process.env.APP_URL}/api/createDraft`, {
+      const response = await fetch(`https://nick.getzs.com/api/createDraft`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
